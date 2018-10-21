@@ -1,0 +1,41 @@
+{% extends 'home.html' %}
+
+{% block content %}
+
+<div class="jumbotron">
+
+	<p>What's on your mind, {{ session['name'].split()[0] }}?</p>
+
+	<div class="jumbotron">
+
+		<form class="form-inline" action="/share" method="POST">
+			
+			<div class="form-group mx-sm-3 mb-2">
+				<input type="text" class="form-control" name="message" placeholder="Your message...">
+			</div>
+
+			<button type="submit" class="btn btn-primary mb-2">Share</button>
+		</form>
+		
+	</div>
+
+		{% for post in posts %}
+		
+		<div class="jumbotron">
+			
+			<fieldset>
+				<legend>Publication date: {{ post['timestamp'] }}</legend>
+				<h5><em>Content:</em></h5>
+				<p>{{ post['message'] }}</p>
+			</fieldset>
+
+		</div>
+				
+		{% endfor %}
+
+	
+	
+
+</div>
+
+{% endblock %}
