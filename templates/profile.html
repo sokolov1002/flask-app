@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+
+{% block title %} Profile {% endblock %}
+
+{% block content %}
+
+{% if session['name'] %}
+
+<div class="jumbotron">
+    <h1 class="display-4">{{ session['name'].split()[0] }}'s page</h1>
+</div>
+
+{% endif %}
+<div class="container">
+<h2>Your publications:</h2>
+{% if posts %}
+{% for post in posts %}
+
+		<div class="jumbotron">
+
+			<fieldset>
+				<p>{{ post['message'] }}</p>
+				<p><em>Published on: {{ post['timestamp'] }}</em></p>
+			</fieldset>
+
+		</div>
+{% endfor %}
+{% else %}
+<p><em>Nothing posted yet...</em></p>
+{% endif %}
+
+</div>
+{% endblock %}

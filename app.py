@@ -17,11 +17,26 @@ mysql = MySQL(app)
 def home():
 	if session:
 		c = mysql.connection.cursor()
-		c.execute("SELECT * FROM posts WHERE id=%s",(session['id'],))
+		c.execute("SELECT * FROM posts")
 		posts = c.fetchall()
 		return render_template('home.html', posts=posts)
 	else:
 		return render_template('home.html')
+
+
+@app.route('/profile')
+def profile():
+	if session:
+		c = mysql.connection.cursor()
+		c.execute("SELECT * FROM users WHERE email=%s", (session['email'],))
+		user = c.fetchone()
+		if user:
+			c.execute("SELECT * FROM posts WHERE id=%s", (session['id'],))
+			posts = c.fetchall()
+			return render_template('profile.html', posts=posts)
+	else:
+		return redirect(url_for('home'))
+
 
 @app.route('/auth/register', methods=['GET', 'POST'])
 def register():
@@ -32,7 +47,6 @@ def register():
 		email = request.form['email']
 		password = request.form['password'].encode('utf-8')
 		hash_password = bcrypt.hashpw(password, bcrypt.gensalt())
-
 		c = mysql.connection.cursor()
 		c.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)",(name, email, hash_password,))
 		mysql.connection.commit()
@@ -41,6 +55,7 @@ def register():
 
 	return redirect(url_for('home'))
 
+
 @app.route('/auth/login', methods=['GET', 'POST'])
 def login():
 	if request.method == 'POST':
@@ -48,7 +63,7 @@ def login():
 		password = request.form['password'].encode('utf-8')
 
 		c = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-		c.execute("SELECT * FROM users WHERE email=%s",(email,))
+		c.execute("SELECT * FROM users WHERE email=%s", (email,))
 		user = c.fetchone()
 		c.close()
 
@@ -63,20 +78,25 @@ def login():
 	else:
 		return render_template('/auth/login.html')
 
+
 @app.route('/share', methods=['GET', 'POST'])
 def submit():
 	if request.method == 'GET':
 		return render_template('/home.html')
 	else:
 		if session:
-			message = request.form['message']
-			date = datetime.datetime.now()
-			time = '{}-{}-{}, {}:{}:{}'.format(date.day, date.month, date.year, date.hour, date.minute, date.second)
 			c = mysql.connection.cursor()
-			c.execute("INSERT INTO posts (id, message, timestamp) VALUES (%s, %s, %s)",(session['id'], message, time,))
-			mysql.connection.commit()
-			c.close()
+			c.execute("SELECT * FROM users WHERE email=%s", (session['email'],))
+			user = c.fetchone()
+			if user:
+				message = request.form['message']
+				date = datetime.datetime.now()
+				time = '{}-{}-{}, {}:{}:{}'.format(date.day, date.month, date.year, date.hour, date.minute, date.second)
+				c.execute("INSERT INTO posts (id, name, message, timestamp) VALUES (%s, %s, %s, %s)", (session['id'], session['name'], message, time,))
+				mysql.connection.commit()
+				c.close()
 		return redirect(url_for('home'))
+
 
 @app.route('/logout')
 def logout():
